@@ -1,12 +1,8 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link to="/">Home</router-link>|
-      <router-link to="/about">About</router-link>
-    </div>
-    <div>
-      <button @click="showPets()">show pets</button>
-      {{ pets }}
+      <router-link to="/">ホーム</router-link>|
+      <router-link to="/PetList">ペット一覧</router-link>
     </div>
     <router-view />
   </div>
@@ -14,27 +10,9 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import { Pet, PetApi, Configuration } from "@/api-client";
 
 @Component
-export default class App extends Vue {
-  private pets: Pet[] = [];
-  private petApi: PetApi | null = null;
-
-  mounted() {
-    this.petApi = new PetApi(
-      new Configuration({
-        apiKey: "special-key",
-        basePath: process.env.VUE_APP_API_BASE_PATH
-      })
-    );
-  }
-
-  async showPets() {
-    const response = await this.petApi?.getPetById(1);
-    this.$set(this.pets, 0, response?.data);
-  }
-}
+export default class App extends Vue {}
 </script>
 
 <style>

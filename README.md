@@ -32,3 +32,17 @@ npm run lint
 
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
+
+### Start Pet Store API
+
+```
+docker pull openapitools/openapi-petstore
+docker run -d -e OPENAPI_BASE_PATH=/v3 -e DISABLE_OAUTH=1 -p 2345:8080 openapitools/openapi-petstore
+```
+
+
+### TODO
+
+- [ ] Home画面
+- [ ] ペット一覧画面
+- [ ] ペット詳細画面
