@@ -1,8 +1,8 @@
 <template>
-  <div id="app">
+  <div id="app" class="container">
     <div id="nav">
-      <router-link to="/">ホーム</router-link>|
-      <router-link to="/PetList">ペット一覧</router-link>
+      <router-link to="/">ホーム</router-link> |
+      <router-link to="/pet/list">ペット一覧</router-link>
     </div>
     <router-view />
   </div>
@@ -15,25 +15,4 @@ import { Component, Vue } from "vue-property-decorator";
 export default class App extends Vue {}
 </script>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
-
-#nav {
-  padding: 30px;
-}
-
-#nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
-
-#nav a.router-link-exact-active {
-  color: #42b983;
-}
-</style>
+<style></style>

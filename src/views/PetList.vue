@@ -1,95 +1,116 @@
 <template>
   <div>
     <h2>ペット一覧</h2>
-    <!--  フィルター  -->
-    <div>
-      <input
-        type="checkbox"
-        id="available"
-        value="available"
-        v-model="checkedStatus"
-      />
-      <label for="available">available</label>
-
-      <input
-        type="checkbox"
-        id="pending"
-        value="pending"
-        v-model="checkedStatus"
-      />
-      <label for="pending">pending</label>
-
-      <input type="checkbox" id="sold" value="sold" v-model="checkedStatus" />
-      <label for="sold">sold</label>
-    </div>
+    <router-link class="btn btn-primary" to="/pet/add" tag="button"
+      >ペット追加</router-link
+    >
 
     <!--  検索結果  -->
     <div v-if="isEmpty">検索結果は見つかりませんでした。</div>
-    <ul v-else>
-      <li v-for="pet in pets" :key="`${pet.id}-${createUUID()}`">
-        <div>
-          {{ pet }}
-        </div>
-        :
-        <router-link :to="`/petDetail/${pet.id}`">詳細へ</router-link>
-      </li>
-    </ul>
+    <table v-else class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>ペット名</th>
+          <th>カテゴリ</th>
+          <th>タグ</th>
+          <th>ステータス</th>
+          <th>詳細</th>
+          <th>編集</th>
+          <th>削除</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="pet in pets" :key="`${pet.id}-${createUUID()}`">
+          <td>{{ pet.id }}</td>
+          <td>{{ pet.name }}</td>
+          <td>{{ pet.category.name }}</td>
+          <td>{{ formatTags(pet.tags) }}</td>
+          <td>{{ pet.status }}</td>
+          <td>
+            <router-link :to="`/pet/detail/${pet.id}`">詳細</router-link>
+          </td>
+          <td>
+            <router-link :to="`/pet/edit/${pet.id}`">編集</router-link>
+          </td>
+          <td>
+            <button @click="deletePet(pet.id)" class="btn btn-danger">
+              削除
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Vue, Watch } from "vue-property-decorator";
-import { Pet, PetApi, Configuration } from "@/api-client";
+import { Component, Vue } from "vue-property-decorator";
+import { PetStatusEnum, Tag } from "@/api-client";
+import petModule from "@/store/modules/pet";
 import { createUUID } from "@/common/uuid";
 
-type Status = Array<"available" | "pending" | "sold">;
+type Status = typeof PetStatusEnum[keyof typeof PetStatusEnum];
+
+const allStatus: Array<Status> = [
+  PetStatusEnum.Available,
+  PetStatusEnum.Pending,
+  PetStatusEnum.Sold
+];
 
 @Component
 export default class App extends Vue {
-  private pets: Pet[] = [];
-  private petApi: PetApi | null = null;
-  private checkedStatus: Status = [];
   private isEmpty = false;
 
-  async mounted() {
-    this.petApi = new PetApi(
-      new Configuration({
-        apiKey: "special-key",
-        basePath: process.env.VUE_APP_API_BASE_PATH
-      })
-    );
+  get pets() {
+    return petModule.allPet;
+  }
 
-    const tmpStatus = this.$route.query.status;
-    let status: Status;
-    if (tmpStatus) {
-      if (typeof tmpStatus === "string")
-        status = tmpStatus.split(",") as Status;
-      else status = ["available", "pending", "sold"];
-    } else {
-      status = ["available", "pending", "sold"];
+  async created() {
+    try {
+      await this.fetchData(allStatus);
+    } catch (e) {
+      alert("一覧の表示に失敗しました。");
     }
-    const response = await this.petApi?.findPetsByStatus(status);
+  }
 
-    this.pets.push(...response.data);
+  async fetchData(status: Array<Status>) {
+    await petModule.findPetsByStatus(status);
+  }
+
+  /**
+   * [aa, bb]を"aa,bb"にフォーマット
+   * textBoxにバインドするため。
+   */
+  formatTags(tags: Tag[]) {
+    return tags.map(tag => tag.name).join(",");
   }
 
   createUUID() {
     return createUUID();
   }
 
-  @Watch("checkedStatus", { deep: true })
-  async onCheckedStatusChanged(val: Status, oldVal: Status) {
-    console.log("change", { val, oldVal });
+  /**
+   * ペットの削除と一覧の更新
+   * @param id
+   */
+  async deletePet(id: number) {
+    if (confirm("削除してもよいですか?")) {
+      try {
+        await petModule.deletePet(id);
+      } catch (e) {
+        alert("削除に失敗しました。");
+      }
 
-    this.pets.splice(0);
-    const response = await this.petApi?.findPetsByStatus(val);
-    if (response) this.pets.push(...response.data);
+      alert("削除に成功しました。");
 
-    if (this.pets.length) this.isEmpty = false;
-    else this.isEmpty = true;
-
-    // URL直叩きされてもフィルター反映できるように、クエリパラメータを付与
-    await this.$router.push({ query: { status: val.join(",") } });
+      try {
+        // 削除後の一覧を再度取得して、一覧を更新
+        await this.fetchData(allStatus);
+      } catch (e) {
+        alert("一覧の表示に失敗しました。");
+      }
+    }
   }
 }
 </script>

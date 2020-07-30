@@ -11,7 +11,7 @@ const routes: Array<RouteConfig> = [
     component: Home
   },
   {
-    path: "/petList",
+    path: "/pet/list",
     name: "PetList",
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
@@ -20,10 +20,22 @@ const routes: Array<RouteConfig> = [
       import(/* webpackChunkName: "petList" */ "../views/PetList.vue")
   },
   {
-    path: "/petDetail/:id",
+    path: "/pet/add/",
+    name: "PetAdd",
+    component: () =>
+      import(/* webpackChunkName: "petAdd" */ "../views/PetAdd.vue")
+  },
+  {
+    path: "/pet/detail/:id",
     name: "PetDetail",
     component: () =>
       import(/* webpackChunkName: "petDetail" */ "../views/PetDetail.vue")
+  },
+  {
+    path: "/pet/edit/:id",
+    name: "PetEdit",
+    component: () =>
+      import(/* webpackChunkName: "petEdit" */ "../views/PetEdit.vue")
   }
 ];
 
